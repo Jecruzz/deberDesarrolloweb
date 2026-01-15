@@ -5,9 +5,9 @@ Esta guía te llevará paso a paso para migrar tu aplicación de autenticación 
 ## ¿Por qué usar Cookies en lugar de localStorage?
 
 ### Ventajas de las Cookies HTTP-only:
-- 🔒 **Mayor seguridad contra XSS (Cross-site scripting)**: Las cookies con flag `httpOnly` no pueden ser accedidas por JavaScript, protegiéndolas de ataques XSS. Los request pueden seguir haciendo uso de la información almacenada en cookies sin que JavaScript necesite leer.
-- 🛡️ **Protección CSRF**: El atributo `sameSite` previene ataques de falsificación de peticiones entre sitios
-- 🚫 **Sin exposición del token**: El token JWT nunca es visible en el código JavaScript del cliente
+- **Mayor seguridad contra XSS (Cross-site scripting)**: Las cookies con flag `httpOnly` no pueden ser accedidas por JavaScript, protegiéndolas de ataques XSS. Los request pueden seguir haciendo uso de la información almacenada en cookies sin que JavaScript necesite leer.
+- **Protección CSRF**: El atributo `sameSite` previene ataques de falsificación de peticiones entre sitios
+- **Sin exposición del token**: El token JWT nunca es visible en el código JavaScript del cliente
 
 ### Desventajas:
 - Más complejo de implementar con aplicaciones móviles nativas

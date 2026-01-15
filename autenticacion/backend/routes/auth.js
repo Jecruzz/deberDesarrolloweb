@@ -81,11 +81,18 @@ router.post('/register', async (req, res) => {
     // No enviar la contraseña al cliente
     const { password: _, ...userWithoutPassword } = newUser;
 
+    // Enviar token como cookie HTTP-only
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    });
+
     console.log(`✅ Usuario registrado: ${email}`);
 
     res.status(201).json({
       message: 'Usuario registrado exitosamente',
-      token,
       user: userWithoutPassword
     });
   } catch (error) {
@@ -136,11 +143,18 @@ router.post('/login', async (req, res) => {
     // No enviar la contraseña al cliente
     const { password: _, ...userWithoutPassword } = user;
 
+    // Enviar token como cookie HTTP-only
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 horas
+    });
+
     console.log(`✅ Login exitoso: ${email}`);
 
     res.json({
       message: 'Login exitoso',
-      token,
       user: userWithoutPassword
     });
   } catch (error) {
@@ -169,10 +183,9 @@ router.get('/users', (req, res) => {
   res.json(usersWithoutPasswords);
 });
 
-// Middleware de autenticación
+// Middleware de autenticación con cookies
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  const token = req.cookies.token;
 
   if (!token) {
     return res.status(401).json({ error: 'Token no proporcionado' });

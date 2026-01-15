@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
@@ -7,11 +9,32 @@ const authRoutes = require('./routes/auth');
 const app = express();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Rutas
 app.use('/api/auth', authRoutes);
+
+// Middleware de autenticación con cookies
+function authenticateToken(req, res, next) {
+  const token = req.cookies.token;
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Token no proporcionado' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Token inválido o expirado' });
+    }
+    req.user = user;
+    next();
+  });
+}
 
 // Ruta protegida de ejemplo
 app.get('/api/protected', authenticateToken, (req, res) => {
@@ -21,25 +44,6 @@ app.get('/api/protected', authenticateToken, (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// Middleware de autenticación
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Token no proporcionado' });
-  }
-
-  const jwt = require('jsonwebtoken');
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Token inválido o expirado' });
-    }
-    req.user = user;
-    next();
-  });
-}
 
 // Ruta de bienvenida
 app.get('/', (req, res) => {
@@ -59,3 +63,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`📚 Documentación: http://localhost:${PORT}`);
 });
+

@@ -6,6 +6,7 @@ export const authService = {
     const response = await fetch(`${API_URL}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Incluir cookies en la petición
       body: JSON.stringify({ email, password, name })
     });
 
@@ -16,8 +17,7 @@ export const authService = {
 
     const data = await response.json();
     
-    // Guardar token en localStorage
-    localStorage.setItem('token', data.token);
+    // Guardar usuario en localStorage (sin el token, que está en la cookie)
     localStorage.setItem('user', JSON.stringify(data.user));
 
     return data;
@@ -28,6 +28,7 @@ export const authService = {
     const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include', // Incluir cookies en la petición
       body: JSON.stringify({ email, password })
     });
 
@@ -38,8 +39,7 @@ export const authService = {
 
     const data = await response.json();
     
-    // Guardar token en localStorage
-    localStorage.setItem('token', data.token);
+    // Guardar usuario en localStorage (sin el token, que está en la cookie)
     localStorage.setItem('user', JSON.stringify(data.user));
 
     return data;
@@ -47,8 +47,8 @@ export const authService = {
 
   // Cerrar sesión
   logout: () => {
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // La cookie será eliminada por el servidor (si se implementa la ruta de logout)
   },
 
   // Obtener usuario actual
@@ -57,24 +57,15 @@ export const authService = {
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  // Obtener token
-  getToken: () => {
-    return localStorage.getItem('token');
-  },
-
   // Verificar si está autenticado
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    return !!localStorage.getItem('user');
   },
 
   // Obtener perfil del servidor
   getProfile: async () => {
-    const token = authService.getToken();
-    
     const response = await fetch(`${API_URL}/me`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      credentials: 'include' // Incluir cookies en la petición
     });
 
     if (!response.ok) {
@@ -86,13 +77,11 @@ export const authService = {
 
   // Hacer petición autenticada
   fetchWithAuth: async (url, options = {}) => {
-    const token = authService.getToken();
-    
     const config = {
       ...options,
+      credentials: 'include', // Incluir cookies en la petición
       headers: {
         ...options.headers,
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     };
